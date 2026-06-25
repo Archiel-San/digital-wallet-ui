@@ -27,7 +27,7 @@ actual class TokenStorage (private val context: Context) {
         val prefs = context.dataStore.data.first()
         val access = prefs[ACCESS] ?: return null
         val refresh = prefs[REFRESH] ?: return null
-        val expires = prefs[EXPIRES]?.toLong() ?: return null
+        val expires = prefs[EXPIRES]?.toLongOrNull() ?: return null
 
         return AuthTokens(access, refresh,expires)
     }
