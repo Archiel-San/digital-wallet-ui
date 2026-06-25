@@ -18,7 +18,7 @@ actual class TokenStorage() {
     actual suspend fun getTokens(): AuthTokens? {
         val access = defaults.stringForKey("access_token") ?: return null
         val refresh = defaults.stringForKey("refresh_token") ?: return null
-        val expires =defaults.stringForKey("expires_in")?.toLong()?: return null
+        val expires = defaults.stringForKey("expires_in")?.toLongOrNull() ?: return null
 
         return AuthTokens(access, refresh, expires)
     }
