@@ -11,9 +11,15 @@ data class WalletResponse(
 )
 
 @Serializable
+enum class LedgerEntryType {
+    CREDIT,
+    DEBIT
+}
+
+@Serializable
 data class LedgerEntry(
     val id: Long = 0,
-    val type: String = "DEBIT",
+    val ledgerType: LedgerEntryType = LedgerEntryType.CREDIT,
     val amount: Double = 0.0,
     val balanceAfter: Double = 0.0,
     val description: String? = null,

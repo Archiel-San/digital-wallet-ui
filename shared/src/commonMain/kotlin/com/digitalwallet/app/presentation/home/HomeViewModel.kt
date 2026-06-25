@@ -7,6 +7,7 @@ import com.digitalwallet.app.data.model.UserResponse
 import com.digitalwallet.app.data.model.WalletResponse
 import com.digitalwallet.app.data.repository.UserRepository
 import com.digitalwallet.app.data.repository.WalletRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -35,6 +36,7 @@ class HomeViewModel(private val userRepository: UserRepository,
         loadAll()
     }
 
+    /*
     fun loadAll() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error =  null)
@@ -42,6 +44,8 @@ class HomeViewModel(private val userRepository: UserRepository,
             val user = userRepository.getMe()
             val wallet = walletRepository.getWallet()
             val ledger = walletRepository.getLedger()
+
+
             val sessionExpired = listOf(user, wallet).any {
                 val message = it.exceptionOrNull()?.message
                 message == "Session expired" || message == "Not logged in"
@@ -60,6 +64,31 @@ class HomeViewModel(private val userRepository: UserRepository,
                     null
                 },
                 sessionExpired = sessionExpired
+            )
+        }
+    }
+
+     */
+
+    fun loadAll() {
+        viewModelScope.launch {
+            // ← don't reset wallet/user/ledger — keep showing old data while refreshing
+            _state.value = _state.value.copy(isLoading = true, error = null)
+
+            val userDeferred   = async { userRepository.getMe() }
+            val walletDeferred = async { walletRepository.getWallet() }
+            val ledgerDeferred = async { walletRepository.getLedger() }
+
+            val user   = userDeferred.await()
+            val wallet = walletDeferred.await()
+            val ledger = ledgerDeferred.await()
+
+            _state.value = _state.value.copy(
+                isLoading = false,
+                user      = user.getOrNull()   ?: _state.value.user,   // keep old if fails
+                wallet    = wallet.getOrNull() ?: _state.value.wallet,
+                ledger    = ledger.getOrElse { _state.value.ledger },
+                error     = if (user.isFailure && wallet.isFailure) "Failed to refresh" else null
             )
         }
     }
